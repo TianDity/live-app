@@ -2,7 +2,12 @@
   <div class="w-screen min-h-screen bg-[#f4f4f4]">
     <ListHeader nav-title="列表页" />
     <Tab :active-id="cityIdData" />
-    <List :list-data="listData.list"/>  
+    <template v-if="errorShow === false">
+      <List :list-data="listData.list"/>  
+    </template>
+    <template v-if="errorShow === true">
+      <ErrorShow />
+    </template>
   </div>
 </template>
 
@@ -13,6 +18,7 @@ import { ref, reactive, provide, onBeforeMount, defineAsyncComponent, watchEffec
 import { useRoute } from 'vue-router'
 import ListHeader from '@components/Header/Common.vue'
 import Tab from '@components/Tab/Index.vue'
+import ErrorShow from '@/components/Container/Common/ErrorShow.vue';
 import { injectCityId } from '@utils/key';
 const List = defineAsyncComponent(() => import('@components/Container/List/Index.vue'));
 
@@ -25,6 +31,8 @@ const { cityId, field } = query
 
 let cityIdData = ref(cityId as string)
 
+let errorShow = ref(false)
+
 const changeCityId = (data: string) => {
   cityIdData.value = data
 }
@@ -35,9 +43,15 @@ provide(injectCityId, {
 })
 
 watchEffect(async () => {
-  let data = await listModel.getListData(cityIdData.value as string, field as string);
+  try {
+    let data = await listModel.getListData(cityIdData.value as string, field as string);
 
-  listData.list = data.data;
+    if (data.status === 0) {
+      listData.list = data.data;
+    }
+  } catch (error) {
+    errorShow.value = true
+  }
 })
 
 </script>

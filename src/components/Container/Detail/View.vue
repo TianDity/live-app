@@ -32,7 +32,6 @@ import IntroText from './Sub/IntroText.vue'
 import IntroCustom from './Sub/IntroCustom.vue'
 import Rate from '@components/Container/Common/Rate.vue'
 
-
 interface Props {
   name: string;
   starNum: number;
@@ -45,6 +44,6 @@ interface Props {
   ticketInfo: string;
 }
 
-const props= defineProps<Props>()
+defineProps<Props>()
 
 </script>

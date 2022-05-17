@@ -1,65 +1,71 @@
 <template>
   <div class="w-screen h-auto min-h-screen bg-[#f4f4f4]">
     <DetailHeader nav-title="详情信息" />
-    <SwiperPic :imgData="serverData.data.pics" />
+    <template v-if="errorShow === false">
+      <SwiperPic :imgData="serverData.data.pics" />
 
-    <View v-if="clientData.field === 'view'"
-      :name="serverData.data.name"
-      :starNum="Number(serverData.data.star)"
-      :score="serverData.data.score"
-      :price="Number(serverData.data.default_price)"
-      :address="serverData.data.address"
-      :openDateTime="serverData.data.open_datetime"
-      :tip="serverData.data.tip"
-      :intro="serverData.data.intro"
-      :ticketInfo="serverData.data.ticket_info"
-    />
+      <View v-if="clientData.field === 'view'"
+        :name="serverData.data.name"
+        :starNum="Number(serverData.data.star)"
+        :score="serverData.data.score"
+        :price="Number(serverData.data.default_price)"
+        :address="serverData.data.address"
+        :openDateTime="serverData.data.open_datetime"
+        :tip="serverData.data.tip"
+        :intro="serverData.data.intro"
+        :ticketInfo="serverData.data.ticket_info"
+      />
 
-    <Food v-if="clientData.field === 'food'"
-      :name="serverData.data.name"
-      :starNum="Number(serverData.data.star)"
-      :score="serverData.data.score"
-      :price="Number(serverData.data.default_price)"
-      :address="serverData.data.address"
-      :openDateTime="serverData.data.open_datetime"
-      :recom="serverData.data.recom"
-      :commentKeyword="serverData.data.comment_keyword"
-    />
+      <Food v-if="clientData.field === 'food'"
+        :name="serverData.data.name"
+        :starNum="Number(serverData.data.star)"
+        :score="serverData.data.score"
+        :price="Number(serverData.data.default_price)"
+        :address="serverData.data.address"
+        :openDateTime="serverData.data.open_datetime"
+        :recom="serverData.data.recom"
+        :commentKeyword="serverData.data.comment_keyword"
+      />
 
-    <Hotel v-if="clientData.field === 'hotel'"
-      :name="serverData.data.name"
-      :starNum="Number(serverData.data.star)"
-      :score="serverData.data.score"
-      :price="Number(serverData.data.default_price)"
-      :address="serverData.data.address"
-      :service="serverData.data.service"
-    />
+      <Hotel v-if="clientData.field === 'hotel'"
+        :name="serverData.data.name"
+        :starNum="Number(serverData.data.star)"
+        :score="serverData.data.score"
+        :price="Number(serverData.data.default_price)"
+        :address="serverData.data.address"
+        :service="serverData.data.service"
+      />
 
-    <Massage v-if="clientData.field === 'massage'"
-      :name="serverData.data.name"
-      :starNum="Number(serverData.data.star)"
-      :score="serverData.data.score"
-      :price="Number(serverData.data.default_price)"
-      :address="serverData.data.address"
-      :service="serverData.data.service"
-      :openDateTime="serverData.data.open_datetime"
-      :commentKeyword="serverData.data.comment_keyword"
-    />
+      <Massage v-if="clientData.field === 'massage'"
+        :name="serverData.data.name"
+        :starNum="Number(serverData.data.star)"
+        :score="serverData.data.score"
+        :price="Number(serverData.data.default_price)"
+        :address="serverData.data.address"
+        :service="serverData.data.service"
+        :openDateTime="serverData.data.open_datetime"
+        :commentKeyword="serverData.data.comment_keyword"
+      />
 
-    <Ktv v-if="clientData.field === 'ktv'"
-      :name="serverData.data.name"
-      :starNum="Number(serverData.data.star)"
-      :score="serverData.data.score"
-      :price="Number(serverData.data.default_price)"
-      :address="serverData.data.address"
-      :service="serverData.data.service"
-    />
+      <Ktv v-if="clientData.field === 'ktv'"
+        :name="serverData.data.name"
+        :starNum="Number(serverData.data.star)"
+        :score="serverData.data.score"
+        :price="Number(serverData.data.default_price)"
+        :address="serverData.data.address"
+        :service="serverData.data.service"
+      />
+    </template>
+    <template v-if="errorShow === true">
+      <ErrorShow />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, reactive, defineAsyncComponent } from 'vue';
+import { ref, reactive, watchEffect, defineAsyncComponent } from 'vue';
 import DetailHeader from '@components/Header/Common.vue'
+import ErrorShow from '@components/Container/Common/ErrorShow.vue';
 import detailModel from '@models/Detail';
 import { useRoute } from 'vue-router'
 
@@ -97,24 +103,26 @@ let clientData = reactive({
   errorShow: false,
 })
 
-onBeforeMount(() => {
-  const { query } = useRoute();
-  const { field, id } = query
+let errorShow = ref(false)
 
-  clientData.field = field as string
-  clientData.id = Number(id as string)
+const { query } = useRoute();
+const { field, id } = query
 
-  let res = async () => {
-    const data = await detailModel.getDetail(field as string, id as string);
+clientData.field = field as string
+clientData.id = Number(id as string)
+
+watchEffect(async () => {
+  try {
+    let data = await detailModel.getDetail(field as string, id as string);
 
     if (data.status == 0) {
       data.data.pics = data.data.pics ? JSON.parse(data.data.pics) : []
       data.data.service = data.data.service ? JSON.parse(data.data.service) : {}
       serverData.data = data.data;
     }
+  } catch (error) {
+    errorShow.value = true
   }
-
-  res()
 })
 
 </script>
